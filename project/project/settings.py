@@ -11,41 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import os
-import dj_database_url
-from dotenv import load_dotenv  
-from django.core.wsgi import get_wsgi_application
-from decouple import config
-
-DJANGO_SETTINGS_MODULE = config('DJANGO_SETTINGS_MODULE', default='project.settings')
-
-
-# Load environment variables from .env file (for local development)
-load_dotenv()
-
-# Get SECRET_KEY from environment variables (Render or .env)
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-# Ensure SECRET_KEY is set (prevent errors in production)
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY is missing from environment variables!")
-
-SECRET_KEY = os.getenv("SECRET_KEY")  # Fetch from environment variables
-
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY is not set in the environment variables")
-
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Converts string "True" to boolean
-ALLOWED_HOSTS = [
-    "loan-kp4n.onrender.com",  # Render default domain
-    "localhost",                # Local development
-    "127.0.0.1",               # Local development
-]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-WSGI_APPLICATION = 'project.wsgi.application'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -56,11 +25,7 @@ SECRET_KEY = 'django-insecure-!h_is=w$k=t&fh(p5vf$9@5su$x0_beelp(n9b8jtsxja@f2)x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
-
-application = get_wsgi_application()
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -116,10 +81,17 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
-}
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'loan_db',
+        'USER': 'postgres',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '5433',    
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': (
@@ -127,18 +99,24 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',  # Ensures file uploads work
         'rest_framework.parsers.FormParser',
     ),
+}
+
+
+
+REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
+    
 }
 
 # Email Configuration (Use SMTP or Mailtrap for testing)
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  
+EMAIL_PORT = 587  
+EMAIL_USE_TLS = True  
+EMAIL_HOST_USER = 'pythondjango293@gmail.com'  
+EMAIL_HOST_PASSWORD = 'pqld uysp zovo laqe'  # Password validation
 
 
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

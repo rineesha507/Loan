@@ -1,6 +1,25 @@
-# Ignore Python bytecode files
+# Python
 *.pyc
+*.pyo
 __pycache__/
 
-# Ignore virtual environment directories
+# Django
+*.log
+*.pot
+*.pyc
+*.pyo
+__pycache__/
+db.sqlite3
+media
+
+# Virtual environment
 env/
+venv/
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
