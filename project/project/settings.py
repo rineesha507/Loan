@@ -35,6 +35,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Converts string "True" 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+WSGI_APPLICATION = 'project.wsgi.application'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
