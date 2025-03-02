@@ -11,7 +11,8 @@ from .models import Loan, LoanPaymentSchedule
 from django.shortcuts import get_object_or_404
 import math
 from decimal import Decimal
-
+from django.db.models import Max
+from django.db.utils import IntegrityError 
 
 
 User = get_user_model()
@@ -68,7 +69,22 @@ def calculate_loan(amount, tenure, interest_rate):
 
     return round(emi, 2), round(total_interest, 2), round(total_amount, 2)
 
-# 1️⃣ User: Add a Loan
+# Function to generate a unique loan ID
+def generate_unique_loan_id():
+    last_loan = Loan.objects.aggregate(Max('loan_id'))
+    last_id = last_loan.get('loan_id__max')
+
+    if last_id:
+        # Extract numeric part and increment
+        numeric_part = int(last_id.replace("LOAN", ""))
+        new_id = f"LOAN{numeric_part + 1:03d}"  # Format as LOAN001, LOAN002, etc.
+    else:
+        new_id = "LOAN001"  # First loan ID
+
+    return new_id
+
+
+# 🚀 **Add Loan API**
 class AddLoanView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -76,65 +92,75 @@ class AddLoanView(APIView):
         user = request.user
         data = request.data
 
-        amount = float(data['amount'])
-        tenure = int(data['tenure'])
-        interest_rate = float(data['interest_rate'])
+        try:
+            amount = float(data['amount'])
+            tenure = data['tenure']
+            interest_rate = float(data['interest_rate'])
 
-        # Validate loan amount and tenure
-        if amount < 1000 or amount > 100000:
-            return Response({"error": "Amount must be between ₹1,000 and ₹100,000."}, status=400)
-        if tenure < 3 or tenure > 24:
-            return Response({"error": "Tenure must be between 3 and 24 months."}, status=400)
+            #  Ensure tenure is a whole number
+            if not isinstance(tenure, int):
+                return Response({"error": "Tenure must be a whole number."}, status=400)
 
-        # Calculate EMI, Total Interest, and Total Amount
-        emi, total_interest, total_amount = calculate_loan(amount, tenure, interest_rate)
-        print(f"🚀 After Calculation - EMI: {emi}, Total Interest: {total_interest}, Total Amount: {total_amount}")
+            #  **Validate Loan Amount and Tenure**
+            if amount < 1000 or amount > 100000:
+                return Response({"error": "Amount must be between ₹1,000 and ₹100,000."}, status=400)
+            if tenure < 3 or tenure > 24:
+                return Response({"error": "Tenure must be between 3 and 24 months."}, status=400)
 
-        print(f"📝 Creating Loan Record -> EMI: {emi}, Total Interest: {total_interest}, Total Amount: {total_amount}")
+            # ✅ **Calculate EMI, Total Interest, and Total Amount**
+            emi, total_interest, total_amount = calculate_loan(amount, tenure, interest_rate)
 
-        # Create Loan Record
-        loan = Loan.objects.create(
-            loan_id=f"LOAN{Loan.objects.count() + 1:03}",
-            user=user,
-            amount=amount,
-            tenure=tenure,
-            interest_rate=interest_rate,
-            monthly_installment=emi,
-            total_interest=total_interest,
-            total_amount=total_amount,
-            amount_remaining=total_amount  # ✅ Fix: Ensure this field is not NULL
-        )
+            # ✅ **Generate a Unique Loan ID and Create Loan Record**
+            while True:
+                loan_id = generate_unique_loan_id()
+                try:
+                    loan = Loan.objects.create(
+                        loan_id=loan_id,
+                        user=user,
+                        amount=amount,
+                        tenure=tenure,
+                        interest_rate=interest_rate,
+                        monthly_installment=emi,
+                        total_interest=total_interest,
+                        total_amount=total_amount,
+                        amount_remaining=total_amount
+                    )
+                    break  # Exit loop if successful
+                except IntegrityError:
+                    continue  # Retry if loan_id already exists
 
+            # ✅ **Generate Payment Schedule**
+            start_date = now().date()
+            payment_schedule = []
+            for i in range(1, tenure + 1):
+                due_date = start_date + timedelta(days=30 * i)
+                payment = LoanPaymentSchedule.objects.create(
+                    loan=loan,
+                    installment_no=i,
+                    due_date=due_date,
+                    amount=emi
+                )
+                payment_schedule.append(LoanPaymentScheduleSerializer(payment).data)
 
-        # Generate Payment Schedule (Each installment every 1 month from today)
-        start_date = now().date()
-        payment_schedule = []
-        for i in range(1, tenure + 1):
-            due_date = start_date + timedelta(days=30 * i)
-            payment = LoanPaymentSchedule.objects.create(
-                loan=loan,
-                installment_no=i,
-                due_date=due_date,
-                amount=emi
-            )
-            payment_schedule.append(LoanPaymentScheduleSerializer(payment).data)
-
-        # Custom API Response
-        response_data = {
-            "status": "success",
-            "data": {
-                "loan_id": loan.loan_id,
-                "amount": loan.amount,
-                "tenure": loan.tenure,
-                "interest_rate": f"{loan.interest_rate}% yearly",
-                "monthly_installment": loan.monthly_installment,
-                "total_interest": loan.total_interest,
-                "total_amount": loan.total_amount,
-                "payment_schedule": payment_schedule
+            # ✅ **Custom API Response**
+            response_data = {
+                "status": "success",
+                "data": {
+                    "loan_id": loan.loan_id,
+                    "amount": loan.amount,
+                    "tenure": loan.tenure,
+                    "interest_rate": f"{loan.interest_rate}% yearly",
+                    "monthly_installment": loan.monthly_installment,
+                    "total_interest": loan.total_interest,
+                    "total_amount": loan.total_amount,
+                    "payment_schedule": payment_schedule
+                }
             }
-        }
-        
-        return Response(response_data)
+
+            return Response(response_data, status=201)
+
+        except ValueError:
+            return Response({"error": "Invalid input. Amount, tenure, and interest rate must be numbers."}, status=400)
     
 # 2️⃣ User: List Loans
 class ListLoansView(APIView):
