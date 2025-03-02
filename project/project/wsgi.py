@@ -15,7 +15,7 @@ from django.core.wsgi import get_wsgi_application
 print(sys.path)
 
 # Set the DJANGO_SETTINGS_MODULE directly
-os.environ['DJANGO_SETTINGS_MODULE'] = 'project.settings'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 
 application = get_wsgi_application()
 
