@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv  
+from django.core.wsgi import get_wsgi_application
+
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
@@ -51,7 +53,11 @@ SECRET_KEY = 'django-insecure-!h_is=w$k=t&fh(p5vf$9@5su$x0_beelp(n9b8jtsxja@f2)x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
+
+application = get_wsgi_application()
 
 
 # Application definition
