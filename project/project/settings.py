@@ -15,6 +15,9 @@ import os
 import dj_database_url
 from dotenv import load_dotenv  
 from django.core.wsgi import get_wsgi_application
+from decouple import config
+
+DJANGO_SETTINGS_MODULE = config('DJANGO_SETTINGS_MODULE', default='project.settings')
 
 
 # Load environment variables from .env file (for local development)
