@@ -31,6 +31,11 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY is not set in the environment variables")
 
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Converts string "True" to boolean
+ALLOWED_HOSTS = [
+    "loan-kp4n.onrender.com",  # Render default domain
+    "localhost",                # Local development
+    "127.0.0.1",               # Local development
+]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
