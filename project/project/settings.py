@@ -12,12 +12,25 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
+from dotenv import load_dotenv  
+
+# Load environment variables from .env file (for local development)
+load_dotenv()
+
+# Get SECRET_KEY from environment variables (Render or .env)
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+# Ensure SECRET_KEY is set (prevent errors in production)
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is missing from environment variables!")
 
 SECRET_KEY = os.getenv("SECRET_KEY")  # Fetch from environment variables
 
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is not set in the environment variables")
 
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Converts string "True" to boolean
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -90,14 +103,7 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'loan_db',
-        'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',
-        'PORT': '5433',    
-    }
+    'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
 }
 
 REST_FRAMEWORK = {
