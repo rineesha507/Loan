@@ -124,15 +124,9 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',  # Ensures file uploads work
         'rest_framework.parsers.FormParser',
     ),
-}
-
-
-
-REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
-    
 }
 
 # Email Configuration (Use SMTP or Mailtrap for testing)
