@@ -11,6 +11,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+SECRET_KEY = os.getenv("SECRET_KEY")  # Fetch from environment variables
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is not set in the environment variables")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
