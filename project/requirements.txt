@@ -10,7 +10,6 @@ pip==23.1.2
 psycopg2==2.9.10
 PyJWT==2.10.1
 setuptools==65.5.0
-simplejwt==2.0.1
 sqlparse==0.5.3
 typing==3.7.4.3
 tzdata==2025.1
